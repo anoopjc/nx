@@ -1,4 +1,4 @@
-= *nx*
+= *NX*
 Anoop Joe Cyriac <author@asciidoctor.org>
 3.0, July 29, 2022: AsciiDoc article template
 :toc:
@@ -6,3 +6,27 @@ Anoop Joe Cyriac <author@asciidoctor.org>
 :url-quickref: https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/
 
 Scripts used in Nutanix.
+
+== Cluster Converison
+Scripts used in Cluster Conversion Project.
+
+=== Build and Deploy
+Scripts used to build n deploy Cluster Conversion Project.
+Based on https://docs.google.com/document/d/1BwXCdWBY32krnuBtv-ypffwqavfjswYdIBGIeHX3pmM[the doc].
+
+==== How to run run scripts
+[start=1]
+. Clone the repo into the *UBVM* in a directory, say _${SCRIPTS_DIR}_
+. Goto _${SCRIPTS_DIR}
+. Execute the commands in the order
+@[source,bash]
+----
+bash ${SCRIPTS_DIR}/ubvm-build_artifacts.sh
+# Wait till above cmd completes, check if any error. If not proceed
+bash ${SCRIPTS_DIR}/ubvm-distribute_artifacts.sh
+----
+[start=4]
+. After this the proper eggs are deployed in all the CVMs and the genesis is restarted.
+
+*Note*: Backup of old eggs are kept in _"/home/nutanix/_mac/ajc/nxbak/"_(the backup directory and all others can be reconfigured in _"globals.sh"_).
+
