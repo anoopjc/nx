@@ -3,6 +3,7 @@
 
 SCRIPT_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd )"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
+# shellcheck source="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
 _getip() {
