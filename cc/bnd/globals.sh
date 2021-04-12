@@ -60,6 +60,28 @@ CVM_CLIENT_EGG="${CVM_EGG_DIR}/nutanix_infra-client.egg"
 NX_BAK_DIR="${SSH_CVM_DIR}/nxbak"  # create this
 
 # FUNCS
+## general funcs
+### timer/duration calculations.
+### NOTE: timer funcs cannot be nested, but the "print_duration" can be used to
+### print in between.
+start_timer() {
+    SECONDS_ORG=${SECONDS}
+    SECONDS=0
+    LAST_TIMER=0
+}
+print_duration() {
+    local duration=$(( ${SECONDS} - ${LAST_TIMER} ))
+    echo "$(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    LAST_TIMER=${SECONDS}
+}
+stop_timer() {
+    print_duration
+
+    local duration=${SECONDS}
+    echo "Total: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    LAST_TIMER=${SECONDS}
+    SECONDS=$(( ${SECONDS_ORG} + ${SECONDS} ))
+}
 ## ubvm
 ### creates script-files' tar(${tar_file}) out of ${tarring_dir}(a copy of
 ### ${scripts_dir}), and if ${is_fresh} is true then clean the ${tarring_par_dir}

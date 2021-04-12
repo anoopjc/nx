@@ -8,11 +8,19 @@ GLOBALS="${SCRIPT_TESTS_DIR}/../globals.sh"
 source "${GLOBALS}"
 
 main() {
-    printf "Starting the test - safe_but_slow approach."
+    printf "Starting the test - safe_but_slow approach.\n"
+    start_timer
+
     bash "${SCRIPT_DIR}/ubvm-build_artifacts.sh"
+    print_duration
+
     sleep 5
+
     bash "${SCRIPT_DIR}/ubvm-distribute_artifacts.sh"
-    printf "Successfully completed the test - safe_but_slow approach."
+    print_duration
+
+    stop_timer
+    printf "Successfully completed the test - safe_but_slow approach.\n"
 }
 
 main
