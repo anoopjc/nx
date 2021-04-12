@@ -25,5 +25,5 @@ allssh() {
         /usr/bin/ssh ${OPTS} ${i} "source /etc/profile; export USE_SAFE_RM=yes; $@"
     done
     echo "================== ${IP} ================="
-    /usr/bin/ssh ${OPTS} ${i} "source /etc/profile; export USE_SAFE_RM=yes; $@"
+    /usr/bin/ssh ${OPTS} ${IP} "source /etc/profile; export USE_SAFE_RM=yes; $@"
 }

@@ -61,26 +61,29 @@ NX_BAK_DIR="${SSH_CVM_DIR}/nxbak"  # create this
 
 # FUNCS
 ## general funcs
-### timer/duration calculations.
+### timer/duration calculations. Ref: https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
 ### NOTE: timer funcs cannot be nested, but the "print_duration" can be used to
-### print in between.
+### print durations as needed.
 start_timer() {
     SECONDS_ORG=${SECONDS}
     SECONDS=0
     LAST_TIMER=0
+    echo "Timer Started."
 }
 print_duration() {
     local duration=$(( ${SECONDS} - ${LAST_TIMER} ))
-    echo "$(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    echo "Duration: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
     LAST_TIMER=${SECONDS}
 }
 stop_timer() {
     print_duration
 
     local duration=${SECONDS}
-    echo "Total: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    echo "Total Duration: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
     LAST_TIMER=${SECONDS}
     SECONDS=$(( ${SECONDS_ORG} + ${SECONDS} ))
+
+    echo "Timer stopped."
 }
 ## ubvm
 ### creates script-files' tar(${tar_file}) out of ${tarring_dir}(a copy of
