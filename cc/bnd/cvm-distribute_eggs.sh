@@ -2,12 +2,13 @@
 # Copyright (c) 2020 Anoop Joe Cyriac
 
 set -ex
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
+# shellcheck source="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
-get_cvm_helpers() {
-    source "${CVM_HELPERS_SCRIPT}"
+get_cvm_common() {
+    source "${CVM_COMMON_SCRIPT}"
 }
 
 cvm-distribute_eggs_toall_cvms() {
@@ -49,10 +50,10 @@ _replace_nx_eggs() {
 
 }
 
-_restart_genesis(){
-        allssh genesis restart
-        # OR
-        # cluster restart_genesis
+_restart_genesis() {
+    allssh genesis restart
+    # OR
+    # cluster restart_genesis
 }
 
 cvm-deploy_eggs_in_cvms() {
@@ -61,7 +62,7 @@ cvm-deploy_eggs_in_cvms() {
 }
 
 main() {
-    get_cvm_helpers
+    get_cvm_common
     cvm-distribute_eggs_toall_cvms
     cvm-deploy_eggs_in_cvms
 }

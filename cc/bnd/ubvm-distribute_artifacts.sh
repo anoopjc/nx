@@ -2,11 +2,15 @@
 # Copyright (c) 2020 Anoop Joe Cyriac
 
 set -ex
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
 # shellcheck source="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
+get_ubvm_common() {
+    # shellcheck source="${SCRIPT_DIR}/ubvm-common.sh"
+    source "${UBVM_COMMON_SCRIPT}"
+}
 
 # In CVM, take a back up of the artifact dir, created most probably during a
 # previous run, and cleanup the dir to have the latest.
@@ -18,22 +22,7 @@ cvm-cleanup() {
     ssh "${SSH_CVM}" "${ssh_cmd}"
 }
 
-# Create a tar out of script dir, transfer it to CVM and extract there into dir
-# of ${SSH_CVM_BUILD_SCRIPTS_TAR}
-transfer_scripts_to_cvm() {
-    local tar_file="${TMP_DIR}/${BUILD_SCRIPTS_DIRNAME}.tar.gz"
-    local tarring_dir=${SCRIPT_DIR}
-    local ssh_cmd
-
-    create-cc_build_scripts-tar "${tar_file}" "${tarring_dir}"
-    ssh "${SSH_CVM}" "mkdir -p ${SSH_CVM_SCRIPTS_DIR}"
-    scp "${tar_file}" "${SSH_CVM}":"${SSH_CVM_BUILD_SCRIPTS_TAR}"
-    ssh_cmd="tar -C $(dirname ${SSH_CVM_BUILD_SCRIPTS_TAR}) "
-    ssh_cmd+="-xzf ${SSH_CVM_BUILD_SCRIPTS_TAR}"
-    ssh "${SSH_CVM}" "${ssh_cmd}"
-}
-
-# SCP the created artifacts to CVM's dir ${SSH_CVM_TAR_DIR}  
+# SCP the created artifacts to CVM's dir ${SSH_CVM_TAR_DIR}
 scp_artifacts_to_cvm() {
     ssh "${SSH_CVM}" "mkdir -p ${SSH_CVM_TAR_DIR}"
     scp "${INFRA_SERVER_TAR}" "${SSH_CVM}":"${SSH_CVM_TAR_DIR}"/
@@ -69,8 +58,9 @@ cvm-deploy_eggs_to_all_cvms() {
 }
 
 main() {
+    get_ubvm_common
     cvm-cleanup
-    transfer_scripts_to_cvm
+    transfer_bndscripts_to_cvm
     scp_artifacts_to_cvm
     cvm-extract_eggs
     cvm-deploy_eggs_to_all_cvms
@@ -78,4 +68,3 @@ main() {
 
 main
 set +ex
-

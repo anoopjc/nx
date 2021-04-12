@@ -2,15 +2,18 @@
 # Copyright (c) 2020 Anoop Joe Cyriac
 
 SCRIPT_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd )"
+# shellcheck source="${SCRIPT_DIR}/globals.sh"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
 
 # VARS
 ## script-files
 CVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/cvm-distribute_eggs.sh"
-CVM_HELPERS_SCRIPT="${SCRIPT_DIR}/cvm-helpers.sh"
+CVM_COMMON_SCRIPT="${SCRIPT_DIR}/cvm-common.sh"
 UBVM_BUILD_SCRIPT="${SCRIPT_DIR}/ubvm-build_artifacts.sh"
 UBVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/ubvm-distribute_artifacts.sh"
 SCRIPTS_README="${SCRIPT_DIR}/README.md"
+UBVM_COMMON_SCRIPT="${SCRIPT_DIR}/ubvm-common.sh"
+## script directory inside the tar
 BUILD_SCRIPTS_DIRNAME="cc-build_scripts"
 ## ubvm
 BASE_UBVM_DIR="/home/anoop.cyriac"
@@ -72,7 +75,7 @@ create-cc_build_scripts-tar() {
         rm -rf "${tarring_par_dir}"; mkdir -p "${tarring_dir}"
         cp "${SCRIPTS_README}" "${GLOBALS}" "${UBVM_BUILD_SCRIPT}" \
             "${UBVM_DISTRIBUTE_SCRIPT}" "${CVM_DISTRIBUTE_SCRIPT}" \
-            "${CVM_HELPERS_SCRIPT}" \
+            "${CVM_COMMON_SCRIPT}" "${UBVM_COMMON_SCRIPT}" \
             "${tarring_dir}/"
     fi
     local tarring_dir="${tarring_par_dir}/${BUILD_SCRIPTS_DIRNAME}"
