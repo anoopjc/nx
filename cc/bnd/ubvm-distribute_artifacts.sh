@@ -7,11 +7,6 @@ GLOBALS="${SCRIPT_DIR}/globals.sh"
 # shellcheck source="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
-get_ubvm_common() {
-    # shellcheck source="${SCRIPT_DIR}/ubvm-common.sh"
-    source "${UBVM_COMMON_SCRIPT}"
-}
-
 # In CVM, take a back up of the artifact dir, created most probably during a
 # previous run, and cleanup the dir to have the latest.
 cvm-cleanup() {
@@ -30,7 +25,7 @@ scp_artifacts_to_cvm() {
 }
 
 # In CVM, extract the transferred artifact and get the eggs.
-cvm-extract_eggs() {
+cvm-extract_tarred_eggs() {
     local ssh_cmd
 
     ssh_cmd="rm -rf ${SSH_CVM_EGG_DIR}; mkdir -p ${SSH_CVM_SERVER_EGG_DIR}; "
@@ -58,11 +53,12 @@ cvm-deploy_eggs_to_all_cvms() {
 }
 
 main() {
-    get_ubvm_common
+    print_commit_id
+    source_ubvm_common
     cvm-cleanup
     transfer_bndscripts_to_cvm
     scp_artifacts_to_cvm
-    cvm-extract_eggs
+    cvm-extract_tarred_eggs
     cvm-deploy_eggs_to_all_cvms
 }
 

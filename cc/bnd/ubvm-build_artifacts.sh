@@ -30,25 +30,32 @@ _setup_toolchain() {
 prepare() {
     # All steps are on pjt main directory
     cd "${TOP}"
-
     _setup_toolchain
+    cd -
 }
 
 cleanup() {
+    # All steps are on pjt main directory
+    cd "${TOP}"
     git clean -fdx && \
-    make realclean
+        make realclean
+    cd -
 }
 
 trigger_build() {
+    # All steps are on pjt main directory
+    cd "${TOP}"
     make -j 33 all_pydeps && \
-    make -j 33 all && \
-    make -j 33 package && \
-    make -j 33 deploy-local 
+        make -j 33 all && \
+        make -j 33 package && \
+        make -j 33 deploy-local
+    cd -
 }
 
 
 # Creating the egg
 main() {
+    print_commit_id
     prepare
     cleanup && \
         trigger_build

@@ -1,7 +1,7 @@
 #!/bin/env bash
 # Copyright (c) 2020 Anoop Joe Cyriac
 
-SCRIPT_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # shellcheck source="${SCRIPT_DIR}/globals.sh"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
 
@@ -33,14 +33,14 @@ SSH_CVM="${SSH_CVM_USER}@${CVM_IP}"
 BASE_CVM_DIR="/home/nutanix"
 SSH_CVM_DIR="${BASE_CVM_DIR}/_mac/ajc"
 #### tar vars
-SSH_CVM_TAR_DIR="${SSH_CVM_DIR}/tar"  # create this
-SSH_CVM_TAR_BAK_DIR="${SSH_CVM_DIR}/tar.bak"  # create this
-SSH_CVM_INFRA_SERVER_TAR="${SSH_CVM_TAR_DIR}/$( basename ${INFRA_SERVER_TAR} )"
-SSH_CVM_INFRA_CLIENT_TAR="${SSH_CVM_TAR_DIR}/$( basename ${INFRA_CLIENT_TAR} )"
+SSH_CVM_TAR_DIR="${SSH_CVM_DIR}/tar"         # create this
+SSH_CVM_TAR_BAK_DIR="${SSH_CVM_DIR}/tar.bak" # create this
+SSH_CVM_INFRA_SERVER_TAR="${SSH_CVM_TAR_DIR}/$(basename ${INFRA_SERVER_TAR})"
+SSH_CVM_INFRA_CLIENT_TAR="${SSH_CVM_TAR_DIR}/$(basename ${INFRA_CLIENT_TAR})"
 #### egg vars
 SSH_CVM_EGG_DIR="${SSH_CVM_TAR_DIR}/egg"
-SSH_CVM_SERVER_EGG_DIR="${SSH_CVM_EGG_DIR}/server"  # create this
-SSH_CVM_CLIENT_EGG_DIR="${SSH_CVM_EGG_DIR}/client"  # create this
+SSH_CVM_SERVER_EGG_DIR="${SSH_CVM_EGG_DIR}/server" # create this
+SSH_CVM_CLIENT_EGG_DIR="${SSH_CVM_EGG_DIR}/client" # create this
 ##### created in the CVM where tar was copied and extracted
 SSH_CVM_EXTRACTED_SERVER_EGG="${SSH_CVM_SERVER_EGG_DIR}/.python/nutanix_infra-server.egg"
 SSH_CVM_EXTRACTED_CLIENT_EGG="${SSH_CVM_CLIENT_EGG_DIR}/.python/nutanix_infra-client.egg"
@@ -51,16 +51,21 @@ SSH_CVM_CLIENT_EGG="${SSH_CVM_CLIENT_EGG_DIR}/nutanix_infra-client.egg"
 SSH_CVM_SCRIPTS_DIR="${SSH_CVM_DIR}/scripts"
 SSH_CVM_BUILD_SCRIPTS_TAR="${SSH_CVM_SCRIPTS_DIR}/${BUILD_SCRIPTS_DIRNAME}.tar.gz"
 SSH_CVM_BUILD_SCRIPTS_DIR="${SSH_CVM_SCRIPTS_DIR}/${BUILD_SCRIPTS_DIRNAME}"
-SSH_CVM_DISTRIBUTE_SCRIPT="${SSH_CVM_BUILD_SCRIPTS_DIR}/`basename ${CVM_DISTRIBUTE_SCRIPT}`"
+SSH_CVM_DISTRIBUTE_SCRIPT="${SSH_CVM_BUILD_SCRIPTS_DIR}/$(basename ${CVM_DISTRIBUTE_SCRIPT})"
 ### NX vars
 NX_BASE_DIR="/home/nutanix"
 CVM_EGG_DIR="${NX_BASE_DIR}/cluster/lib/py"
 CVM_SERVER_EGG="${CVM_EGG_DIR}/nutanix_infra-server.egg"
 CVM_CLIENT_EGG="${CVM_EGG_DIR}/nutanix_infra-client.egg"
-NX_BAK_DIR="${SSH_CVM_DIR}/nxbak"  # create this
+NX_BAK_DIR="${SSH_CVM_DIR}/nxbak" # create this
 
 # FUNCS
 ## general funcs
+### GIT functions
+#### print git commit info
+print_commit_id() {
+    printf "[%s]" $(git rev-parse HEAD)
+}
 ### timer/duration calculations. Ref: https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
 ### NOTE: timer funcs cannot be nested, but the "print_duration" can be used to
 ### print durations as needed.
@@ -71,17 +76,17 @@ start_timer() {
     echo "Timer Started."
 }
 print_duration() {
-    local duration=$(( ${SECONDS} - ${LAST_TIMER} ))
-    echo "Duration: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    local duration=$((${SECONDS} - ${LAST_TIMER}))
+    echo "Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
     LAST_TIMER=${SECONDS}
 }
 stop_timer() {
     print_duration
 
     local duration=${SECONDS}
-    echo "Total Duration: $(( ${duration} / $(( 60 * 60 )) ))h $(( (${duration} / 60) % 60))m $(( ${duration} % 60))s elapsed."
+    echo "Total Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
     LAST_TIMER=${SECONDS}
-    SECONDS=$(( ${SECONDS_ORG} + ${SECONDS} ))
+    SECONDS=$((${SECONDS_ORG} + ${SECONDS}))
 
     echo "Timer stopped."
 }
@@ -97,7 +102,8 @@ create-cc_build_scripts-tar() {
 
     cd "${tarring_par_dir}"
     if [ ${is_fresh} = "true" ]; then
-        rm -rf "${tarring_par_dir}"; mkdir -p "${tarring_dir}"
+        rm -rf "${tarring_par_dir}"
+        mkdir -p "${tarring_dir}"
         cp "${SCRIPTS_README}" "${GLOBALS}" "${UBVM_BUILD_SCRIPT}" \
             "${UBVM_DISTRIBUTE_SCRIPT}" "${CVM_DISTRIBUTE_SCRIPT}" \
             "${CVM_COMMON_SCRIPT}" "${UBVM_COMMON_SCRIPT}" \
@@ -120,4 +126,14 @@ extract-cc_build_scripts-tar() {
     rm -rf "${BUILD_SCRIPTS_DIRNAME}"
     tar -C "${tar_file_dir}" -xzf "${tar_file}"
     cd -
+}
+### source the ubvm common script file.
+source_ubvm_common() {
+    # shellcheck source="${SCRIPT_DIR}/ubvm-common.sh"
+    source "${UBVM_COMMON_SCRIPT}"
+}
+## CVM
+### source the cvm common script file.
+source_cvm_common() {
+    source "${CVM_COMMON_SCRIPT}"
 }

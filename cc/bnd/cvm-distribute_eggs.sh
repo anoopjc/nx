@@ -7,10 +7,6 @@ GLOBALS="${SCRIPT_DIR}/globals.sh"
 # shellcheck source="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
-get_cvm_common() {
-    source "${CVM_COMMON_SCRIPT}"
-}
-
 cvm-distribute_eggs_toall_cvms() {
     IP="$(_getip)"
     for i in $(svmips); do
@@ -19,8 +15,8 @@ cvm-distribute_eggs_toall_cvms() {
 
         # create all needed dirs in the CVM
         local ssh_cmd
-        ssh_cmd="mkdir -p ${NX_BAK_DIR} ${SSH_CVM_SERVER_EGG_DIR} "
-        ssh_cmd+="${SSH_CVM_CLIENT_EGG_DIR}"
+        ssh_cmd="mkdir -p $(dirname ${SSH_CVM_SERVER_EGG}) "
+        ssh_cmd+="$(dirname ${SSH_CVM_CLIENT_EGG})"
         ssh "${ssh_cvm}" "${ssh_cmd}"
         if [ "${i}" = "${IP}" ]; then
             echo "CVM: [${i}] is the same machine!!!"
@@ -38,13 +34,14 @@ _replace_nx_eggs() {
 
         local ssh_cmd
         # Preserve backup eggs, with date
-        ssh_cmd="cp --backup=existing --suffix=\".$(date '+%Y-%m-%d_%H:%M:%S')\" "
-        ssh_cmd+="-t ${NX_BAK_DIR} ${CVM_SERVER_EGG} ${CVM_CLIENT_EGG}"
+        ssh_cmd="mkdir -p ${NX_BAK_DIR}; "
+        ssh_cmd+="cp --backup=existing --suffix=\".$(date '+%Y-%m-%d_%H:%M:%S')\" "
+        ssh_cmd+="-t \"${NX_BAK_DIR}\" \"${CVM_SERVER_EGG}\" \"${CVM_CLIENT_EGG}\""
         ssh "${ssh_cvm}" "${ssh_cmd}"
 
         # Replace eggs
-        ssh_cmd="cp ${SSH_CVM_SERVER_EGG} ${CVM_SERVER_EGG}; "
-        ssh_cmd+="cp ${SSH_CVM_CLIENT_EGG} ${CVM_CLIENT_EGG};"
+        ssh_cmd="cp \"${SSH_CVM_SERVER_EGG}\" \"${CVM_SERVER_EGG}\"; "
+        ssh_cmd+="cp \"${SSH_CVM_CLIENT_EGG}\" \"${CVM_CLIENT_EGG}\";"
         ssh "${ssh_cvm}" "${ssh_cmd}"
     done
 
@@ -62,6 +59,7 @@ cvm-deploy_eggs_in_cvms() {
 }
 
 main() {
+    print_commit_id
     get_cvm_common
     cvm-distribute_eggs_toall_cvms
     cvm-deploy_eggs_in_cvms
