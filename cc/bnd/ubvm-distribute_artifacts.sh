@@ -53,7 +53,7 @@ cvm-deploy_eggs_to_all_cvms() {
 }
 
 main() {
-    print_commit_id
+    print_git_info "${TOP}"
     source_ubvm_common
     cvm-cleanup
     transfer_bndscripts_to_cvm

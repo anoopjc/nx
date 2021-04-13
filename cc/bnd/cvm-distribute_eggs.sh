@@ -59,8 +59,7 @@ cvm-deploy_eggs_in_cvms() {
 }
 
 main() {
-    print_commit_id
-    get_cvm_common
+    source_cvm_common
     cvm-distribute_eggs_toall_cvms
     cvm-deploy_eggs_in_cvms
 }

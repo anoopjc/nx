@@ -11,7 +11,9 @@ main() {
     printf "Starting the test - safe_but_slow approach.\n"
     start_timer
 
-    print_commit_id
+    setup_logging
+    print_git_info "${SCRIPT_DIR}"
+
     bash "${SCRIPT_DIR}/ubvm-build_artifacts.sh"
     print_duration
 

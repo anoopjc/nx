@@ -8,7 +8,7 @@ GLOBALS="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
 main() {
-    print_commit_id
+    print_git_info "${TOP}"
     source_ubvm_common
     transfer_bndscripts_to_cvm
     transfer_ccfiles_to_cvm

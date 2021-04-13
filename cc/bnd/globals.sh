@@ -15,8 +15,16 @@ SCRIPTS_README="${SCRIPT_DIR}/README.md"
 UBVM_COMMON_SCRIPT="${SCRIPT_DIR}/ubvm-common.sh"
 ## script directory inside the tar
 BUILD_SCRIPTS_DIRNAME="cc-build_scripts"
+## any node
+### paths
+GENERAL_TMP_DIR="\tmp"
+### node-types
+NODE_CVM="cvm"
+NODE_UBVM="ubvm"
+NODE_OTHER="other"
 ## ubvm
 BASE_UBVM_DIR="/home/anoop.cyriac"
+BASE_UBVM_BND_DIR="${BASE_UBVM_DIR}/_mac/ajc"
 TOP="${BASE_UBVM_DIR}/_src/git/_pjt/_AOS/_gerrit/main"
 TMP_DIR="${HOME}/tmp/ajc"
 ### tar vars
@@ -31,7 +39,8 @@ CVM_IP="10.46.17.207"
 SSH_CVM_USER="nutanix"
 SSH_CVM="${SSH_CVM_USER}@${CVM_IP}"
 BASE_CVM_DIR="/home/nutanix"
-SSH_CVM_DIR="${BASE_CVM_DIR}/_mac/ajc"
+BASE_CVM_BND_DIR="${BASE_CVM_DIR}/_mac/ajc"
+SSH_CVM_DIR="${BASE_CVM_BND_DIR}"
 #### tar vars
 SSH_CVM_TAR_DIR="${SSH_CVM_DIR}/tar"         # create this
 SSH_CVM_TAR_BAK_DIR="${SSH_CVM_DIR}/tar.bak" # create this
@@ -58,28 +67,79 @@ CVM_EGG_DIR="${NX_BASE_DIR}/cluster/lib/py"
 CVM_SERVER_EGG="${CVM_EGG_DIR}/nutanix_infra-server.egg"
 CVM_CLIENT_EGG="${CVM_EGG_DIR}/nutanix_infra-client.egg"
 NX_BAK_DIR="${SSH_CVM_DIR}/nxbak" # create this
+## Log
+LOG_FILENAME="${BUILD_SCRIPTS_DIRNAME}.log"
 
 # FUNCS
 ## general funcs
+### bnd specific
+get_node_type() {
+    local cvm_identifier="Nutanix Controller VM"
+    local cvm_identifier_file="/etc/issue"
+    local ubvm_identifier_file="/etc/ubvm-release"
+    local node_type
+    if grep -q "${cvm_identifier}" "${cvm_identifier_file}"; then
+        node_type="${NODE_CVM}"
+    elif [ -f  "${ubvm_identifier_file}" ]; then
+        node_type="${NODE_UBVM}"
+    else
+        node_type="${NODE_OTHER}"
+    fi
+    echo "${node_type}"
+}
+get_node_base_dir() {
+    local node_type=$(get_node_type)
+    if [ "${node_type}" = "${NODE_CVM}" ]; then
+        base_dir="${BASE_CVM_BND_DIR}"
+    elif [ "${node_type}" = "${NODE_UBVM}" ]; then
+        base_dir="${BASE_UBVM_BND_DIR}"
+    else
+        base_dir="${GENERAL_TMP_DIR}"
+    fi
+    echo "${base_dir}"
+}
+### log functions
+
+setup_logging() {
+    local base_dir=$(get_node_base_dir)
+    local log_dir="${base_dir}/logs"
+    local log_file="${log_dir}/${LOG_FILENAME}"
+    mkdir -p ${log_dir}
+
+    exec 3>&1 4>&2
+    trap 'exec 2>&4 1>&3' 0 1 2 3
+    exec &> >(tee -a "${log_file}")
+}
 ### GIT functions
 #### print git commit info
-print_commit_id() {
-    printf "[%s]" $(git rev-parse HEAD)
+print_git_info() {
+    local git_dir="${1}"
+    local git_internal_dir=$(git rev-parse --git-dir) 2>&1 || echo ""
+    if [ x"${git_internal_dir+x}" == x"" ];then
+        printf "[%s] not a GIT directory" ${git_dir}
+        return
+    fi
+    cd "${git_dir}"
+    printf "[%s]" $(git rev-parse HEAD | GREP_COLORS='ms=34;1' grep $(git rev-parse --short=0 HEAD))
+    cd -
 }
 ### timer/duration calculations. Ref: https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
 ### NOTE: timer funcs cannot be nested, but the "print_duration" can be used to
 ### print durations as needed.
+#### To reset and start a timer, before printing any duration.
 start_timer() {
     SECONDS_ORG=${SECONDS}
     SECONDS=0
     LAST_TIMER=0
     echo "Timer Started."
 }
+#### to print duration in between after a start
 print_duration() {
     local duration=$((${SECONDS} - ${LAST_TIMER}))
     echo "Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
     LAST_TIMER=${SECONDS}
 }
+#### to stop the currently running timer after printing last duration interval & total duration.
 stop_timer() {
     print_duration
 

@@ -55,7 +55,7 @@ trigger_build() {
 
 # Creating the egg
 main() {
-    print_commit_id
+    print_git_info "${TOP}"
     prepare
     cleanup && \
         trigger_build
