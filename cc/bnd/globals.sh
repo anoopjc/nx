@@ -6,6 +6,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 GLOBALS="${SCRIPT_DIR}/globals.sh"
 
 # VARS
+## general
+### bash vars
+BLACK=$(tput setaf 0)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+LIME_YELLOW=$(tput setaf 190)
+POWDER_BLUE=$(tput setaf 153)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+BRIGHT=$(tput bold)
+BLINK=$(tput blink)
+REVERSE=$(tput smso)
+UNDERLINE=$(tput smul)
+NORMAL=$(tput sgr0)
 ## script-files
 CVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/cvm-distribute_eggs.sh"
 CVM_COMMON_SCRIPT="${SCRIPT_DIR}/cvm-common.sh"
@@ -13,8 +30,11 @@ UBVM_BUILD_SCRIPT="${SCRIPT_DIR}/ubvm-build_artifacts.sh"
 UBVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/ubvm-distribute_artifacts.sh"
 SCRIPTS_README="${SCRIPT_DIR}/README.md"
 UBVM_COMMON_SCRIPT="${SCRIPT_DIR}/ubvm-common.sh"
-## script directory inside the tar
+### script directory inside the tar
 BUILD_SCRIPTS_DIRNAME="cc-build_scripts"
+### 2 methods to deploy updated script files
+METHOD_SAFE_BUT_SLOW="safe_but_slow"
+METHOD_UNSAFE_BUT_FAST="unsafe_but_fast"
 ## any node
 ### paths
 GENERAL_TMP_DIR="\tmp"
@@ -27,6 +47,8 @@ BASE_UBVM_DIR="/home/anoop.cyriac"
 BASE_UBVM_BND_DIR="${BASE_UBVM_DIR}/_mac/ajc"
 TOP="${BASE_UBVM_DIR}/_src/git/_pjt/_AOS/_gerrit/main"
 TMP_DIR="${HOME}/tmp/ajc"
+### src files
+SRC_CHANGED_FILES_LIST="${SCRIPT_DIR}/changed_ccfiles.lst"
 ### tar vars
 BUILD_CACHE_DIR="${BASE_UBVM_DIR}/.buildcache"
 INFRA_SERVER_TAR_DIR="${BUILD_CACHE_DIR}/infra-server/local"
@@ -41,6 +63,7 @@ SSH_CVM="${SSH_CVM_USER}@${CVM_IP}"
 BASE_CVM_DIR="/home/nutanix"
 BASE_CVM_BND_DIR="${BASE_CVM_DIR}/_mac/ajc"
 SSH_CVM_DIR="${BASE_CVM_BND_DIR}"
+CVM_TMP_DIR="${BASE_CVM_DIR}/tmp/ajc"  # create this
 #### tar vars
 SSH_CVM_TAR_DIR="${SSH_CVM_DIR}/tar"         # create this
 SSH_CVM_TAR_BAK_DIR="${SSH_CVM_DIR}/tar.bak" # create this
@@ -56,6 +79,9 @@ SSH_CVM_EXTRACTED_CLIENT_EGG="${SSH_CVM_CLIENT_EGG_DIR}/.python/nutanix_infra-cl
 ##### created in all CVMs copied from the scp-ed CVM
 SSH_CVM_SERVER_EGG="${SSH_CVM_SERVER_EGG_DIR}/nutanix_infra-server.egg"
 SSH_CVM_CLIENT_EGG="${SSH_CVM_CLIENT_EGG_DIR}/nutanix_infra-client.egg"
+##### used when cc-scripts are copied directly
+CVM_TMP_DIR_CLIENT_EGG_DIR="${CVM_TMP_DIR}/infra_client"
+CVM_TMP_DIR_SERVER_EGG_DIR="${CVM_TMP_DIR}/infra_server"
 #### scripts vars
 SSH_CVM_SCRIPTS_DIR="${SSH_CVM_DIR}/scripts"
 SSH_CVM_BUILD_SCRIPTS_TAR="${SSH_CVM_SCRIPTS_DIR}/${BUILD_SCRIPTS_DIRNAME}.tar.gz"
@@ -72,6 +98,18 @@ LOG_FILENAME="${BUILD_SCRIPTS_DIRNAME}.log"
 
 # FUNCS
 ## general funcs
+### path-manipulation funcs
+#### return the passed path after removing redundant "/".
+remove_redundant_fslash() {
+    local path="${1}"
+    shopt -s extglob
+    echo ${path//\/*(\/)/\/}
+}
+#### return the path after removing the first root directory of the path.
+remove_root_dir() {
+    local path="${1}"
+    echo ${path#*/}
+}
 ### bnd specific
 get_node_type() {
     local cvm_identifier="Nutanix Controller VM"
@@ -99,12 +137,11 @@ get_node_base_dir() {
     echo "${base_dir}"
 }
 ### log functions
-
 setup_logging() {
     local base_dir=$(get_node_base_dir)
     local log_dir="${base_dir}/logs"
     local log_file="${log_dir}/${LOG_FILENAME}"
-    mkdir -p ${log_dir}
+    mkdir -p "${log_dir}"
 
     exec 3>&1 4>&2
     trap 'exec 2>&4 1>&3' 0 1 2 3
@@ -114,13 +151,17 @@ setup_logging() {
 #### print git commit info
 print_git_info() {
     local git_dir="${1}"
-    local git_internal_dir=$(git rev-parse --git-dir) 2>&1 || echo ""
-    if [ x"${git_internal_dir+x}" == x"" ];then
+    local git_internal_dir
+
+    cd "$(realpath ${git_dir})"
+    git_internal_dir=$(git rev-parse --git-dir) 2>&1 || echo "FAIL"
+    if [ x"${git_internal_dir:-x}" == xx ];then
         printf "[%s] not a GIT directory" ${git_dir}
+        cd -
         return
     fi
-    cd "${git_dir}"
-    printf "[%s]" $(git rev-parse HEAD | GREP_COLORS='ms=34;1' grep $(git rev-parse --short=0 HEAD))
+
+    git rev-parse HEAD | GREP_COLORS='ms=1;31' grep $(git rev-parse --short=0 HEAD)
     cd -
 }
 ### timer/duration calculations. Ref: https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
@@ -131,12 +172,15 @@ start_timer() {
     SECONDS_ORG=${SECONDS}
     SECONDS=0
     LAST_TIMER=0
-    echo "Timer Started."
+    echo "${LIME_YELLOW}Timer Started: $(date)${NORMAL}"
 }
 #### to print duration in between after a start
 print_duration() {
     local duration=$((${SECONDS} - ${LAST_TIMER}))
-    echo "Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
+    local msg
+    msg="Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m "
+    msg+="$((${duration} % 60))s elapsed."
+    printf "%s\n" "${LIME_YELLOW}$msg${NORMAL}"
     LAST_TIMER=${SECONDS}
 }
 #### to stop the currently running timer after printing last duration interval & total duration.
@@ -144,11 +188,14 @@ stop_timer() {
     print_duration
 
     local duration=${SECONDS}
-    echo "Total Duration: $((${duration} / $((60 * 60))))h $(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
+    local msg
+    msg="Total Duration: $((${duration} / $((60 * 60))))h "
+    msg+="$(((${duration} / 60) % 60))m $((${duration} % 60))s elapsed."
+    printf "%s\n" "${LIME_YELLOW}$msg${NORMAL}"
     LAST_TIMER=${SECONDS}
     SECONDS=$((${SECONDS_ORG} + ${SECONDS}))
 
-    echo "Timer stopped."
+    echo "${LIME_YELLOW}Timer stopped: $(date)${NORMAL}"
 }
 ## ubvm
 ### creates script-files' tar(${tar_file}) out of ${tarring_dir}(a copy of
@@ -195,5 +242,6 @@ source_ubvm_common() {
 ## CVM
 ### source the cvm common script file.
 source_cvm_common() {
+    # shellcheck source="${SCRIPT_DIR}/cvm-common.sh"
     source "${CVM_COMMON_SCRIPT}"
 }

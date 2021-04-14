@@ -9,6 +9,7 @@ source "${GLOBALS}"
 
 main() {
     printf "Starting the test - safe_but_slow approach.\n"
+    printf "%s\n" "${GREEN}${BLINK} Starting the test - safe_but_slow approach.${NORMAL}"
     start_timer
 
     setup_logging
@@ -17,13 +18,14 @@ main() {
     bash "${SCRIPT_DIR}/ubvm-build_artifacts.sh"
     print_duration
 
+    printf "%s\n" "${YELLOW}${BLINK} Waiting to distribute artifacts - safe_but_slow approach.${NORMAL}"
     sleep 5
 
     bash "${SCRIPT_DIR}/ubvm-distribute_artifacts.sh"
     print_duration
 
     stop_timer
-    printf "Successfully completed the test - safe_but_slow approach.\n"
+    printf "%s\n" "${GREEN}Successfully completed the test - safe_but_slow approach.${NORMAL}"
 }
 
 main

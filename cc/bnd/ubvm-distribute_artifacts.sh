@@ -45,7 +45,7 @@ cvm-extract_tarred_eggs() {
 # a backup of NX eggs, deployed in NX path.
 cvm-deploy_eggs_to_all_cvms() {
     # TODO: why even --login have no effect... eg: ${IP} ?
-    ssh "${SSH_CVM}" "bash --login ${SSH_CVM_DISTRIBUTE_SCRIPT}"
+    ssh -t "${SSH_CVM}" "bash --login ${SSH_CVM_DISTRIBUTE_SCRIPT}"
 
     # Running external scripts can change the state. Making sure it is as
     # expected.
