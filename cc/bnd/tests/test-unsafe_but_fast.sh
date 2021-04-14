@@ -14,8 +14,13 @@ main() {
     setup_logging
     print_git_info "${SCRIPT_DIR}"
 
+    bash "${SCRIPT_DIR}/ubvm-create_ccfiles_list.sh"
+    print_duration
+
     bash "${SCRIPT_DIR}/ubvm-distribute_scripts.sh"
     print_duration
+
+    rm -f "${SRC_CHANGED_FILES_LIST}"
 
     stop_timer
     printf "Successfully completed the test - test-unsafe_but_fast approach.\n"

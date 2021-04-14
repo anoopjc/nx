@@ -41,17 +41,6 @@ cvm-extract_tarred_eggs() {
     ssh "${SSH_CVM}" "${ssh_cmd}"
 }
 
-# In CVM, the transferred eggs is also transferred to all CVMs and after taking
-# a backup of NX eggs, deployed in NX path.
-cvm-deploy_eggs_to_all_cvms() {
-    # TODO: why even --login have no effect... eg: ${IP} ?
-    ssh -t "${SSH_CVM}" "bash --login ${SSH_CVM_DISTRIBUTE_SCRIPT}"
-
-    # Running external scripts can change the state. Making sure it is as
-    # expected.
-    set -ex
-}
-
 main() {
     print_git_info "${TOP}"
     source_ubvm_common

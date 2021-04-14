@@ -8,15 +8,33 @@ GLOBALS="${SCRIPT_DIR}/globals.sh"
 source "${GLOBALS}"
 
 create_ccfiles_list() {
-    local ccfiles_list_file="${SRC_CHANGED_FILES_LIST}"
-    local cc_dirs
-    cc_dirs="$TOP/infra_server/cluster/py/cluster/genesis/convert_cluster"
-    cc_dirs+=" $TOP/infra_client/infrastructure/cluster/py/cluster/client/genesis/convert_cluster"
+    local prev_pwd=$(pwd)
+    local tmp_branch="tmp-ccfiles"
+    local cur_branch
 
+    # After creating a tmp branch, get the last files changes out of the repo.
     cd "${TOP}"
-    #git status -s "${cc_dirs}" | awk -F ' ' '{print $2}' > "${SCRIPT_DIR}/changed_ccfiles.lst"
-    git diff-tree --no-commit-id --name-only -r HEAD > "${SRC_CHANGED_FILES_LIST}"
-    cd -
+    cur_branch=$(git rev-parse --abbrev-ref HEAD)
+    git branch -D ${tmp_branch} || echo "FAIL"; git checkout -b "${tmp_branch}"
+    git reset HEAD~1
+
+    # Create the ${SRC_CHANGED_FILES_LIST}
+    rm -f "${SRC_CHANGED_FILES_LIST}"
+    for i in "${SRC_CHANGED_FILES_BASE_DIRS[@]}"; do
+        cd "${i}"
+        #sub_cmd="cd {}; git status -s . | awk -F ' ' '{print \$2}' | sed -e 's#^#{}/#' | cut -c 3-;"
+        # First sed "prefix" sub-dirs inside $SRC_CHANGED_FILES_LIST while
+        # second sed "prefix" the entry from $SRC_CHANGED_FILES_BASE_DIRS.
+        find . \( -type l -o -type d \) -maxdepth 1 -print0 | xargs -0 -n1 -I {} bash -c "cd {}; git status -s . | awk -F ' ' '{print \$2}' | sed -e 's#^#{}/#' | cut -c 3- | sed -e 's#^#${i}#'" >> ${SRC_CHANGED_FILES_LIST}
+        cd - > /dev/null
+    done
+
+    # Clear the last commit changes from repo, goto org branch
+    cd "${TOP}"
+    git checkout -- .
+    git checkout "${cur_branch}"
+
+    cd "${prev_pwd}"
 }
 
 main() {

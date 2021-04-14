@@ -24,12 +24,13 @@ REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 NORMAL=$(tput sgr0)
 ## script-files
-CVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/cvm-distribute_eggs.sh"
 CVM_COMMON_SCRIPT="${SCRIPT_DIR}/cvm-common.sh"
+CVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/cvm-distribute_eggs.sh"
+CVM_EXTRACT_NXEGGS_SCRIPT="${SCRIPT_DIR}/cvm-extract_nxeggs.sh"
 UBVM_BUILD_SCRIPT="${SCRIPT_DIR}/ubvm-build_artifacts.sh"
+UBVM_COMMON_SCRIPT="${SCRIPT_DIR}/ubvm-common.sh"
 UBVM_DISTRIBUTE_SCRIPT="${SCRIPT_DIR}/ubvm-distribute_artifacts.sh"
 SCRIPTS_README="${SCRIPT_DIR}/README.md"
-UBVM_COMMON_SCRIPT="${SCRIPT_DIR}/ubvm-common.sh"
 ### script directory inside the tar
 BUILD_SCRIPTS_DIRNAME="cc-build_scripts"
 ### 2 methods to deploy updated script files
@@ -49,6 +50,11 @@ TOP="${BASE_UBVM_DIR}/_src/git/_pjt/_AOS/_gerrit/main"
 TMP_DIR="${HOME}/tmp/ajc"
 ### src files
 SRC_CHANGED_FILES_LIST="${SCRIPT_DIR}/changed_ccfiles.lst"
+SRC_CHANGED_FILES_UNWANTED_PATH=".python/"
+declare -a SRC_CHANGED_FILES_BASE_DIRS=(
+    "${TOP}/infra_client/${SRC_CHANGED_FILES_UNWANTED_PATH}"
+    "${TOP}/infra_server/${SRC_CHANGED_FILES_UNWANTED_PATH}"
+)
 ### tar vars
 BUILD_CACHE_DIR="${BASE_UBVM_DIR}/.buildcache"
 INFRA_SERVER_TAR_DIR="${BUILD_CACHE_DIR}/infra-server/local"
@@ -63,7 +69,7 @@ SSH_CVM="${SSH_CVM_USER}@${CVM_IP}"
 BASE_CVM_DIR="/home/nutanix"
 BASE_CVM_BND_DIR="${BASE_CVM_DIR}/_mac/ajc"
 SSH_CVM_DIR="${BASE_CVM_BND_DIR}"
-CVM_TMP_DIR="${BASE_CVM_DIR}/tmp/ajc"  # create this
+CVM_TMP_DIR="${BASE_CVM_DIR}/tmp/ajc"        # create this
 #### tar vars
 SSH_CVM_TAR_DIR="${SSH_CVM_DIR}/tar"         # create this
 SSH_CVM_TAR_BAK_DIR="${SSH_CVM_DIR}/tar.bak" # create this
@@ -87,6 +93,7 @@ SSH_CVM_SCRIPTS_DIR="${SSH_CVM_DIR}/scripts"
 SSH_CVM_BUILD_SCRIPTS_TAR="${SSH_CVM_SCRIPTS_DIR}/${BUILD_SCRIPTS_DIRNAME}.tar.gz"
 SSH_CVM_BUILD_SCRIPTS_DIR="${SSH_CVM_SCRIPTS_DIR}/${BUILD_SCRIPTS_DIRNAME}"
 SSH_CVM_DISTRIBUTE_SCRIPT="${SSH_CVM_BUILD_SCRIPTS_DIR}/$(basename ${CVM_DISTRIBUTE_SCRIPT})"
+SSH_CVM_EXTRACT_NXEGGS_SCRIPT="${SSH_CVM_BUILD_SCRIPTS_DIR}/$(basename ${CVM_EXTRACT_NXEGGS_SCRIPT})"
 ### NX vars
 NX_BASE_DIR="/home/nutanix"
 CVM_EGG_DIR="${NX_BASE_DIR}/cluster/lib/py"
@@ -118,7 +125,7 @@ get_node_type() {
     local node_type
     if grep -q "${cvm_identifier}" "${cvm_identifier_file}"; then
         node_type="${NODE_CVM}"
-    elif [ -f  "${ubvm_identifier_file}" ]; then
+    elif [ -f "${ubvm_identifier_file}" ]; then
         node_type="${NODE_UBVM}"
     else
         node_type="${NODE_OTHER}"
@@ -155,7 +162,7 @@ print_git_info() {
 
     cd "$(realpath ${git_dir})"
     git_internal_dir=$(git rev-parse --git-dir) 2>&1 || echo "FAIL"
-    if [ x"${git_internal_dir:-x}" == xx ];then
+    if [ x"${git_internal_dir:-x}" == xx ]; then
         printf "[%s] not a GIT directory" ${git_dir}
         cd -
         return
@@ -214,6 +221,7 @@ create-cc_build_scripts-tar() {
         cp "${SCRIPTS_README}" "${GLOBALS}" "${UBVM_BUILD_SCRIPT}" \
             "${UBVM_DISTRIBUTE_SCRIPT}" "${CVM_DISTRIBUTE_SCRIPT}" \
             "${CVM_COMMON_SCRIPT}" "${UBVM_COMMON_SCRIPT}" \
+            "${CVM_EXTRACT_NXEGGS_SCRIPT}" \
             "${tarring_dir}/"
     fi
     local tarring_dir="${tarring_par_dir}/${BUILD_SCRIPTS_DIRNAME}"

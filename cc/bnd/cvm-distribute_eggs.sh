@@ -56,24 +56,16 @@ _restart_genesis() {
     # cluster restart_genesis
 }
 
-create_updated_egg() {
-    local prev_cwd=$(pwd)
+create_updated_eggs() {
+    local prev_pwd=$(pwd)
     local client_egg_filename=$(basename "${CVM_CLIENT_EGG}")
     local server_egg_filename=$(basename "${CVM_SERVER_EGG}")
     local client_egg_tmp_dir="${CVM_TMP_DIR_CLIENT_EGG_DIR}"
     local server_egg_tmp_dir="${CVM_TMP_DIR_SERVER_EGG_DIR}"
 
-    mkdir -p "${CVM_TMP_DIR}"
-
-    # Copy current NX egg to TMP and extract both server & client
-    cp "${CVM_SERVER_EGG}" "${server_egg_tmp_dir}/"
-    cp "${CVM_CLIENT_EGG}" "${client_egg_tmp_dir}/"
-    cd "${server_egg_tmp_dir}"; unzip "${server_egg_filename}"
-    cd "${client_egg_tmp_dir}"; unzip "${client_egg_filename}"
-
     # Remove both server & client eggs before making eggs
-    cd "${server_egg_tmp_dir}"; /bin/rm "${server_egg_filename}"
-    cd "${client_egg_tmp_dir}"; /bin/rm "${client_egg_filename}"
+    cd "${server_egg_tmp_dir}"; /bin/rm -f "${server_egg_filename}"
+    cd "${client_egg_tmp_dir}"; /bin/rm -f "${client_egg_filename}"
     # Create updated egg files
     cd "${server_egg_tmp_dir}"; jar -cvf "${server_egg_filename}" .
     cd "${client_egg_tmp_dir}"; jar -cvf "${client_egg_filename}" .
@@ -82,8 +74,10 @@ create_updated_egg() {
         cp "${server_egg_filename}" "${SSH_CVM_SERVER_EGG}"
     cd "${client_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_CLIENT_EGG})"; \
         cp "${client_egg_filename}" "${SSH_CVM_CLIENT_EGG}"
+    # remove tmp dirs
+    /bin/rm -rf "${client_egg_tmp_dir}" "${server_egg_tmp_dir}"
 
-    cd "${prev_cwd}"
+    cd "${prev_pwd}"
 }
 
 cvm-deploy_eggs_in_cvms() {
@@ -94,7 +88,7 @@ cvm-deploy_eggs_in_cvms() {
 main() {
     source_cvm_common
     if [ ${CC_BND_METHOD} = "${METHOD_UNSAFE_BUT_FAST}" ]; then
-        create_updated_egg
+        create_updated_eggs
     fi
     cvm-distribute_eggs_toall_cvms
     cvm-deploy_eggs_in_cvms
