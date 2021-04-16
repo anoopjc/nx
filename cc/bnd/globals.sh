@@ -218,7 +218,7 @@ create-cc_build_scripts-tar() {
     if [ ${is_fresh} = "true" ]; then
         rm -rf "${tarring_par_dir}"
         mkdir -p "${tarring_dir}"
-        cp "${SCRIPTS_README}" "${GLOBALS}" "${UBVM_BUILD_SCRIPT}" \
+        cp -af "${SCRIPTS_README}" "${GLOBALS}" "${UBVM_BUILD_SCRIPT}" \
             "${UBVM_DISTRIBUTE_SCRIPT}" "${CVM_DISTRIBUTE_SCRIPT}" \
             "${CVM_COMMON_SCRIPT}" "${UBVM_COMMON_SCRIPT}" \
             "${CVM_EXTRACT_NXEGGS_SCRIPT}" \

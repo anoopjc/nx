@@ -18,8 +18,8 @@ extract_nx_eggs() {
     mkdir -p "${client_egg_tmp_dir}" "${server_egg_tmp_dir}"
 
     # Copy current NX egg to TMP and extract both server & client
-    cp "${CVM_SERVER_EGG}" "${server_egg_tmp_dir}/"
-    cp "${CVM_CLIENT_EGG}" "${client_egg_tmp_dir}/"
+    cp -af "${CVM_SERVER_EGG}" "${server_egg_tmp_dir}/"
+    cp -af "${CVM_CLIENT_EGG}" "${client_egg_tmp_dir}/"
     cd "${server_egg_tmp_dir}"; unzip "${server_egg_filename}"
     cd "${client_egg_tmp_dir}"; unzip "${client_egg_filename}"
     # Remove both server & client eggs before making eggs

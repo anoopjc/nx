@@ -38,13 +38,13 @@ _replace_nx_eggs() {
         local ssh_cmd
         # Preserve backup eggs, with date
         ssh_cmd="mkdir -p ${NX_BAK_DIR}; "
-        ssh_cmd+="cp --backup=existing --suffix=\".$(date '+%Y-%m-%d_%H:%M:%S')\" "
+        ssh_cmd+="cp -af --backup=existing --suffix=\".$(date '+%Y-%m-%d_%H:%M:%S')\" "
         ssh_cmd+="-t \"${NX_BAK_DIR}\" \"${CVM_SERVER_EGG}\" \"${CVM_CLIENT_EGG}\""
         ssh "${ssh_cvm}" "${ssh_cmd}"
 
         # Replace eggs
-        ssh_cmd="cp \"${ssh_cvm_server_egg}\" \"${CVM_SERVER_EGG}\"; "
-        ssh_cmd+="cp \"${ssh_cvm_client_egg}\" \"${CVM_CLIENT_EGG}\";"
+        ssh_cmd="cp -af \"${ssh_cvm_server_egg}\" \"${CVM_SERVER_EGG}\"; "
+        ssh_cmd+="cp -af \"${ssh_cvm_client_egg}\" \"${CVM_CLIENT_EGG}\";"
         ssh "${ssh_cvm}" "${ssh_cmd}"
     done
 
@@ -71,9 +71,9 @@ create_updated_eggs() {
     cd "${client_egg_tmp_dir}"; jar -cvf "${client_egg_filename}" .
     # copy to the standard script's ssh-egg-dir
     cd "${server_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_EXTRACTED_SERVER_EGG})"; \
-        cp "${server_egg_filename}" "${SSH_CVM_EXTRACTED_SERVER_EGG}"
+        cp -af "${server_egg_filename}" "${SSH_CVM_EXTRACTED_SERVER_EGG}"
     cd "${client_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_EXTRACTED_CLIENT_EGG})"; \
-        cp "${client_egg_filename}" "${SSH_CVM_EXTRACTED_CLIENT_EGG}"
+        cp -af "${client_egg_filename}" "${SSH_CVM_EXTRACTED_CLIENT_EGG}"
 
     cd "${prev_pwd}"
     # remove tmp dirs
