@@ -66,6 +66,9 @@ create_updated_eggs() {
     # Remove both server & client eggs before making eggs
     cd "${server_egg_tmp_dir}"; /bin/rm -f "${server_egg_filename}"
     cd "${client_egg_tmp_dir}"; /bin/rm -f "${client_egg_filename}"
+    # Create pyc for updated files
+    cd "${server_egg_tmp_dir}"; python -m compileall .
+    cd "${client_egg_tmp_dir}"; python -m compileall .
     # Create updated egg files
     cd "${server_egg_tmp_dir}"; jar -cvf "${server_egg_filename}" .
     cd "${client_egg_tmp_dir}"; jar -cvf "${client_egg_filename}" .
