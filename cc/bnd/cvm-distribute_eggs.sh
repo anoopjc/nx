@@ -69,15 +69,15 @@ create_updated_eggs() {
     # Create updated egg files
     cd "${server_egg_tmp_dir}"; jar -cvf "${server_egg_filename}" .
     cd "${client_egg_tmp_dir}"; jar -cvf "${client_egg_filename}" .
-    # copy to the standard script's  ssh-egg-dir
-    cd "${server_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_SERVER_EGG})"; \
-        cp "${server_egg_filename}" "${SSH_CVM_SERVER_EGG}"
-    cd "${client_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_CLIENT_EGG})"; \
-        cp "${client_egg_filename}" "${SSH_CVM_CLIENT_EGG}"
-    # remove tmp dirs
-    /bin/rm -rf "${client_egg_tmp_dir}" "${server_egg_tmp_dir}"
+    # copy to the standard script's ssh-egg-dir
+    cd "${server_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_EXTRACTED_SERVER_EGG})"; \
+        cp "${server_egg_filename}" "${SSH_CVM_EXTRACTED_SERVER_EGG}"
+    cd "${client_egg_tmp_dir}"; mkdir -p "$(dirname ${SSH_CVM_EXTRACTED_CLIENT_EGG})"; \
+        cp "${client_egg_filename}" "${SSH_CVM_EXTRACTED_CLIENT_EGG}"
 
     cd "${prev_pwd}"
+    # remove tmp dirs
+    /bin/rm -rf "${client_egg_tmp_dir}" "${server_egg_tmp_dir}"
 }
 
 cvm-deploy_eggs_in_cvms() {

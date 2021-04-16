@@ -25,7 +25,7 @@ create_ccfiles_list() {
         #sub_cmd="cd {}; git status -s . | awk -F ' ' '{print \$2}' | sed -e 's#^#{}/#' | cut -c 3-;"
         # First sed "prefix" sub-dirs inside $SRC_CHANGED_FILES_LIST while
         # second sed "prefix" the entry from $SRC_CHANGED_FILES_BASE_DIRS.
-        find . \( -type l -o -type d \) -maxdepth 1 -print0 | xargs -0 -n1 -I {} bash -c "cd {}; git status -s . | awk -F ' ' '{print \$2}' | sed -e 's#^#{}/#' | cut -c 3- | sed -e 's#^#${i}#'" >> ${SRC_CHANGED_FILES_LIST}
+        find . -maxdepth 1 \( -type l -o -type d \) -print0 | xargs -0 -n1 -I {} bash -c "cd {}; git status -s . | awk -F ' ' '{print \$2}' | sed -e 's#^#{}/#' | cut -c 3- | sed -e 's#^#${i}#'" >> ${SRC_CHANGED_FILES_LIST}
         cd - > /dev/null
     done
 
