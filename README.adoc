@@ -1,39 +1,90 @@
 = *NX*
-Anoop Joe Cyriac <author@asciidoctor.org>
-3.0, July 29, 2022: AsciiDoc article template
-:toc:
-:icons: font
-:url-quickref: https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/
+Anoop Joe Cyriac
+0.1, 2021-04-10
+//:source-highlighter: rogue
 :source-highlighter: highlight.js
+:author: Anoop Joe Cyriac <http://github.com/anoopjc>
+:authorinitials: ajc
+:revnumber: 0.2
+:revdate: 2021-04-18
+:revremark: Enhanced info
+:description: NX Documentation
+:docdate: 2021-04-10
+:version-label: Edition
+:toc:
+:toclevels: 4
+:icons: font
+:url-quickref: https://github.com/anoopjc/nx/blob/main/README.adoc
+:pdf-page-size: A4
+//:pdf-page-size: Letter
 
 Scripts used in Nutanix.
 
-== Cluster Converison
+== Cluster Conversion(CC)
 Scripts used in Cluster Conversion Project. There are two methods to follow - Safe_but_Slow&Slow and Unsafe_but_Fast.
 
-=== Safe_but_Slow
-This method involves building new eggs and replacing them in all the CVMS.
-
-==== Build and Deploy
+=== Build and Deploy(bnd)
 Scripts used to build n deploy Cluster Conversion Project.
-Based on https://docs.google.com/document/d/1BwXCdWBY32krnuBtv-ypffwqavfjswYdIBGIeHX3pmM[the doc].
+Based on https://docs.google.com/document/d/1BwXCdWBY32krnuBtv-ypffwqavfjswYdIBGIeHX3pmM[the doc]. There are two suggested methods - <<Safe_but_Slow, Safe_but_Slow>> & <<Unsafe_but_Fast, Unsafe_but_Fast>>.
+
+[#Safe_but_Slow]
+==== Safe_but_Slow
+This method involves building new eggs and replacing them in all the CVMs.
+
+===== How to run scripts
+[start=1]
+. Configure SSH Key-Based Authentication from *UBVM* to any *CVM*
+. Configure the _globals.sh_ file to one's convenience, at the least set properly _$TOP_ & _$BASE_UBVM_DIR_.
+. Clone the repo into the *UBVM* in a directory & let set the directory as _${SCRIPTS_DIR}_
+. Goto _${SCRIPTS_DIR}_
+. Execute the commands in either of the two ways, in the given order
+.. using test script
++
+[source,bash,linenums,highlight='1-3']
+----
+$ bash "${SCRIPTS_DIR}/tests/test-safe_but_slow.sh"
+----
++
+.. *OR* executing scripts directly,
++
+[source,bash,linenums,highlight='1-3']
+----
+$ bash "${SCRIPTS_DIR}/ubvm-build_artifacts.sh"
+# Wait till above cmd completes, check if any error. If not proceed...
+$ bash "${SCRIPTS_DIR}/ubvm-distribute_artifacts.sh"
+----
++
+. After this the proper eggs are deployed in all the CVMs and the genesis is restarted.
+
+*Note*: Backup of old eggs are kept in each CVM @ _"/home/nutanix/_mac/ajc/nxbak/"_ (the backup directory, like many others can be reconfigured in _"globals.sh"_).
+
+[#Unsafe_but_Fast]
+==== Unsafe_but_Fast
+This method involves replacing the changed script files in the eggs, after extracting & then creating the CC-related eggs, and then deploying across all the CVMs.
 
 ===== How to run run scripts
 [start=1]
-. Clone the repo into the *UBVM* in a directory, say _${SCRIPTS_DIR}_
-. Goto _${SCRIPTS_DIR}
-. Execute the commands in the order
-[source,bash,linenums,highlight='1-9']
+. Configure SSH Key-Based Authentication from *UBVM* to any *CVM*
+. Configure the _globals.sh_ file to one's convenience, at the least set properly _$TOP_ & _$BASE_UBVM_DIR_.
+. Clone the repo into the *UBVM* in a directory & let set the directory as _${SCRIPTS_DIR}_
+. Goto _${SCRIPTS_DIR}_
+. Execute the commands in either of the two ways, in the given order
+.. using test script _(preferred)_
++
+[source,bash,linenums,highlight='1-3']
 ----
-$ bash ${SCRIPTS_DIR}/ubvm-build_artifacts.sh
-# Wait till above cmd completes, check if any error. If not proceed
-$ bash ${SCRIPTS_DIR}/ubvm-distribute_artifacts.sh
+$ bash "${SCRIPTS_DIR}/tests/test-unsafe_but_fast.sh"
 ----
-
-[start=4]
++
+.. *OR* executing scripts directly,
++
+[source,bash,linenums,highlight='1-3']
+----
+$ bash "${SCRIPT_DIR}/ubvm-create_ccfiles_list.sh"
+# Wait till above cmd completes, check if any error. If not proceed...
+$ bash "${SCRIPT_DIR}/ubvm-distribute_scripts.sh"
+----
++
 . After this the proper eggs are deployed in all the CVMs and the genesis is restarted.
 
-*Note*: Backup of old eggs are kept in each CVM @ _"/home/nutanix/_mac/ajc/nxbak/"_(the backup directory and these all can be reconfigured in _"globals.sh"_).
-
-=== Unsafe_but_Fast
-This method involves replacing only the changes script files in the eggs in all the CVMs.
+*Note*: Backup of old eggs are kept in each CVM @ _"/home/nutanix/_mac/ajc/nxbak/"_ (the backup directory, like many others can be reconfigured in _"globals.sh"_).
