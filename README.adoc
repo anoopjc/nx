@@ -62,7 +62,7 @@ $ bash "${SCRIPTS_DIR}/ubvm-distribute_artifacts.sh"
 ==== Unsafe_but_Fast
 This method involves replacing the changed script files in the eggs, after extracting & then creating the CC-related eggs, and then deploying across all the CVMs.
 
-===== How to run run scripts
+===== How to run scripts
 [start=1]
 . Configure SSH Key-Based Authentication from *UBVM* to any *CVM*
 . Configure the _globals.sh_ file to one's convenience, at the least set properly _$TOP_ & _$BASE_UBVM_DIR_.
